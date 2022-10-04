@@ -7,36 +7,47 @@ class MoviesController < ApplicationController
   end
 
   def index
+=begin
+Case 1: Starter page:         params: nil, session: nil.
+Case 2: New request received: params: not nill. 
+                                In this case, if the user hasn't been on info page, session will be nil
+                                Note that if session is not nil, We need to overwrite session with 
+                                current params status because if not,in the following operations, 
+                                session will replace the field that is not currently checked.
+Case 3: Back from info-page:  params: nil, session: not nil.
+                                In this case, directly apply the operations stored in session.
+=end
     @all_ratings = Movie.all_ratings
-    @need_to_redirect = false
     # RATING
     if params[:ratings] == nil and session[:ratings] == nil
-      # new page
+      # Case 1
       @ratings_to_show = []
     end
     if params[:ratings] != nil
-      # new request received
+      # Case 2
       @ratings_to_show = params[:ratings].keys
       # overwrite session
-      session[:ratings] = @ratings_to_show
+      session[:ratings] = params[:ratings].keys
     end
     if params[:ratings] == nil and session[:ratings] != nil
-      # back from more-info page
-      @need_to_redirect = true
+      # Case 3
       @ratings_to_show = session[:ratings] # note that session[:ratings] returns array type, not dict
     end
     @ratings_to_show_hash = Hash[@ratings_to_show.map {|r| [r,1]}]
-  
+
     # SORT
     if params[:sort] == nil and session[:sort] == nil
+      # Case 1
       @order_to_show = ''
-    elsif params[:sort] != nil
+    end
+    if params[:sort] != nil
+      # Case 2
       @order_to_show = params[:sort]
       session[:sort] = params[:sort]
-    elsif params[:sort] == nil and session[:sort] != nil
-      # redirect to the previous case
+    end
+    if params[:sort] == nil and session[:sort] != nil
+      # Case 3
       @order_to_show = session[:sort]
-      @need_to_redirect = true
     end
 
     # change header color
@@ -46,11 +57,7 @@ class MoviesController < ApplicationController
       @release_date_header = 'hilite bg-warning'
     end
 
-    if @need_to_redirect
-      redirect_to movies_path(ratings: @ratings_to_show_hash, sort: @order_to_show)
-    else
-      @movies = Movie.with_ratings(@ratings_to_show).order(@order_to_show)
-    end
+    @movies = Movie.with_ratings(@ratings_to_show).order(@order_to_show)
   end
 
   def new

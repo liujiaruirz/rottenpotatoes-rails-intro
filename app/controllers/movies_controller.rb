@@ -22,52 +22,74 @@ Case 3: Back from info-page:  params: nil, session: not nil.
                                 params will not be nil.
 =end
     @all_ratings = Movie.all_ratings
-    @need_to_redirect = false
     # RATING
-    if params[:ratings] == nil and session[:ratings] == nil
+    if (params[:ratings] == nil and params[:sort] == nil) and (session[:ratings] == nil and session[:sort] == nil)
       # Case 1
-      @ratings_to_show = @all_ratings
-    end
-    if params[:ratings] != nil
+      @ratings_to_show = []
+      @movies = Movie.with_ratings(@ratings_to_show)
+    elsif params[:ratings] != nil or params[:sort] != nil
       # Case 2
-      @ratings_to_show = params[:ratings].keys
+      if params[:ratings] != nil
+        @ratings_to_show = params[:ratings].keys
+      else 
+        @ratings_to_show = session[:ratings]
+      end
       # update session
-      session[:ratings] = params[:ratings].keys
-      # session.delete(:ratings)
-    end
-    if params[:ratings] == nil and session[:ratings] != nil
+      session[:ratings] = @ratings_to_show
+      if params[:sort] == nil
+        params[:sort] = session[:sort]
+      else
+        session[:sort] = params[:sort]
+      end
+      
+      if params[:sort] != nil
+        # change header color
+        if params[:sort] == 'title'
+          @title_header = 'hilite bg-warning'
+        elsif params[:sort] == 'release_date'
+          @release_date_header = 'hilite bg-warning'
+        end
+        @movies = Movie.with_ratings(@ratings_to_show).order(params[:sort])
+      else
+        @movies = Movie.with_ratings(@ratings_to_show)
+      end
+    elsif (params[:ratings] == nil and params[:sort] == nil) and (session[:ratings] != nil or session[:sort] != nil)
       # Case 3
-      @need_to_redirect = true
-      @ratings_to_show = session[:ratings] # note that session[:ratings] returns array type, not dict
+      if session[:ratings] != nil
+        @ratings_to_show = session[:ratings] # note that session[:ratings] returns array type, not dict
+      else @ratings_to_show = @all_ratings end
+      @ratings_to_show_hash = Hash[@ratings_to_show.map {|r| [r,1]}]
+      # change header color
+      if session[:sort] != nil
+        # if session[:sort] == 'title'
+        #   @title_header = 'hilite bg-warning'
+        # elsif session[:sort] == 'release_date'
+        #   @release_date_header = 'hilite bg-warning'
+        redirect_to movies_path(ratings: @ratings_to_show_hash, sort: session[:sort]) and return 
+      else
+        redirect_to movies_path(ratings: @ratings_to_show_hash) and return 
+      end
     end
-    @ratings_to_show_hash = Hash[@ratings_to_show.map {|r| [r,1]}]
+    
 
-    # SORT
-    if params[:sort] == nil and session[:sort] == nil
-      # Case 1
-      @order_to_show = ''
-    end
-    if params[:sort] != nil
-      # Case 2
-      @order_to_show = params[:sort]
-      session[:sort] = params[:sort]
-      # session.delete(:sort)
-    end
-    if params[:sort] == nil and session[:sort] != nil
-      # Case 3
-      @need_to_redirect = true
-      @order_to_show = session[:sort]
-    end
+    # # SORT
+    # if params[:sort] == nil and session[:sort] == nil
+    #   # Case 1
+    #   @order_to_show = ''
+    # end
+    # if params[:sort] != nil
+    #   # Case 2
+    #   @order_to_show = params[:sort]
+    #   session[:sort] = params[:sort]
+    #   # session.delete(:sort)
+    # end
+    # if params[:sort] == nil and session[:sort] != nil
+    #   # Case 3
+    #   @need_to_redirect = true
+    #   @order_to_show = session[:sort]
+    # end
 
-    # change header color
-    if @order_to_show == 'title'
-      @title_header = 'hilite bg-warning'
-    elsif @order_to_show == 'release_date'
-      @release_date_header = 'hilite bg-warning'
-    end
 
-    redirect_to movies_path(ratings: @ratings_to_show_hash, sort: @order_to_show) and return if @need_to_redirect
-    @movies = Movie.with_ratings(@ratings_to_show).order(@order_to_show)
   end
 
   def new

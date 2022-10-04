@@ -12,25 +12,31 @@ Case 1: Starter page:         params: nil, session: nil.
 Case 2: New request received: params: not nill. 
                                 In this case, if the user hasn't been on info page, session will be nil
                                 Note that if session is not nil, We need to overwrite session with 
-                                current params status because if not,in the following operations, 
+                                current params status to keep the previous page's records.
+                                If we don't, in the following operations, 
                                 session will replace the field that is not currently checked.
 Case 3: Back from info-page:  params: nil, session: not nil.
-                                In this case, directly apply the operations stored in session.
+                                In this case, apply the operations stored in session.
+                                Actually not. For grading purposes, we need RESTful route, that is,
+                                redirect to the previous page. 
 =end
     @all_ratings = Movie.all_ratings
+    @need_to_redirect = false
     # RATING
     if params[:ratings] == nil and session[:ratings] == nil
       # Case 1
-      @ratings_to_show = []
+      @ratings_to_show = @all_ratings
     end
     if params[:ratings] != nil
       # Case 2
       @ratings_to_show = params[:ratings].keys
       # overwrite session
       session[:ratings] = params[:ratings].keys
+      # session.delete(:ratings)
     end
     if params[:ratings] == nil and session[:ratings] != nil
       # Case 3
+      @need_to_redirect = true
       @ratings_to_show = session[:ratings] # note that session[:ratings] returns array type, not dict
     end
     @ratings_to_show_hash = Hash[@ratings_to_show.map {|r| [r,1]}]
@@ -44,9 +50,11 @@ Case 3: Back from info-page:  params: nil, session: not nil.
       # Case 2
       @order_to_show = params[:sort]
       session[:sort] = params[:sort]
+      # session.delete(:sort)
     end
     if params[:sort] == nil and session[:sort] != nil
       # Case 3
+      @need_to_redirect = true
       @order_to_show = session[:sort]
     end
 
@@ -57,6 +65,7 @@ Case 3: Back from info-page:  params: nil, session: not nil.
       @release_date_header = 'hilite bg-warning'
     end
 
+    redirect_to movies_path(ratings: @ratings_to_show_hash, sort: @order_to_show) and return if @need_to_redirect
     @movies = Movie.with_ratings(@ratings_to_show).order(@order_to_show)
   end
 

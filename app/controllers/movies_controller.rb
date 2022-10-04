@@ -8,17 +8,18 @@ class MoviesController < ApplicationController
 
   def index
 =begin
-Case 1: Starter page:         params: nil, session: nil.
-Case 2: New request received: params: not nill. 
-                                In this case, if the user hasn't been on info page, session will be nil
-                                Note that if session is not nil, We need to overwrite session with 
-                                current params status to keep the previous page's records.
-                                If we don't, in the following operations, 
-                                session will replace the field that is not currently checked.
+Case 1: Starter page:         params: nil, session: nil. 
+                                Query with all_ratings and nil sort.
+Case 2: New request received: params: not nill (session in this case will always be non nil)
+                                Query with the information stored in params.
+                                Also, we need to update session. Because once the user go to 
+                                movie-info-page, params will be nil but session won't,
+                                so we need to keep session up to date with params all the time.
 Case 3: Back from info-page:  params: nil, session: not nil.
                                 In this case, apply the operations stored in session.
                                 Actually not. For grading purposes, we need RESTful route, that is,
-                                redirect to the previous page. 
+                                redirect using the information stored in session and in the new page, 
+                                params will not be nil.
 =end
     @all_ratings = Movie.all_ratings
     @need_to_redirect = false
@@ -30,7 +31,7 @@ Case 3: Back from info-page:  params: nil, session: not nil.
     if params[:ratings] != nil
       # Case 2
       @ratings_to_show = params[:ratings].keys
-      # overwrite session
+      # update session
       session[:ratings] = params[:ratings].keys
       # session.delete(:ratings)
     end

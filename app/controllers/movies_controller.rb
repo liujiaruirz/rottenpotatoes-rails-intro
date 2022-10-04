@@ -25,7 +25,7 @@ Case 3: Back from info-page:  params: nil, session: not nil.
     # RATING
     if (params[:ratings] == nil and params[:sort] == nil) and (session[:ratings] == nil and session[:sort] == nil)
       # Case 1
-      @ratings_to_show = []
+      @ratings_to_show = @all_ratings
       @movies = Movie.with_ratings(@ratings_to_show)
     elsif params[:ratings] != nil or params[:sort] != nil
       # Case 2
@@ -59,37 +59,12 @@ Case 3: Back from info-page:  params: nil, session: not nil.
         @ratings_to_show = session[:ratings] # note that session[:ratings] returns array type, not dict
       else @ratings_to_show = @all_ratings end
       @ratings_to_show_hash = Hash[@ratings_to_show.map {|r| [r,1]}]
-      # change header color
       if session[:sort] != nil
-        # if session[:sort] == 'title'
-        #   @title_header = 'hilite bg-warning'
-        # elsif session[:sort] == 'release_date'
-        #   @release_date_header = 'hilite bg-warning'
         redirect_to movies_path(ratings: @ratings_to_show_hash, sort: session[:sort]) and return 
       else
         redirect_to movies_path(ratings: @ratings_to_show_hash) and return 
       end
     end
-    
-
-    # # SORT
-    # if params[:sort] == nil and session[:sort] == nil
-    #   # Case 1
-    #   @order_to_show = ''
-    # end
-    # if params[:sort] != nil
-    #   # Case 2
-    #   @order_to_show = params[:sort]
-    #   session[:sort] = params[:sort]
-    #   # session.delete(:sort)
-    # end
-    # if params[:sort] == nil and session[:sort] != nil
-    #   # Case 3
-    #   @need_to_redirect = true
-    #   @order_to_show = session[:sort]
-    # end
-
-
   end
 
   def new

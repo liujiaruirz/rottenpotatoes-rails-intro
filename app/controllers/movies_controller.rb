@@ -8,25 +8,48 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.all_ratings
-    @ratings_to_show = []
-    @ratings_to_show_hash = []
-    if params[:ratings] != nil
-      @ratings_to_show = params[:ratings].keys
-      # the params received from HTML is originially a hashmap.
-      @ratings_to_show_hash = params[:ratings]
-      # or
-      # @ratings_to_show_hash = Hash[@ratings_to_show.map {|r| [r,1]}]
+    @need_to_redirect = false
+    # RATING
+    if params[:ratings] == nil and session[:ratings] == nil
+      # new page
+      @ratings_to_show = []
     end
-    @movies = Movie.with_ratings(@ratings_to_show)
+    if params[:ratings] != nil
+      # new request received
+      @ratings_to_show = params[:ratings].keys
+      # overwrite session
+      session[:ratings] = @ratings_to_show
+    end
+    if params[:ratings] == nil and session[:ratings] != nil
+      # back from more-info page
+      @need_to_redirect = true
+      @ratings_to_show = session[:ratings] # note that session[:ratings] returns array type, not dict
+    end
+    @ratings_to_show_hash = Hash[@ratings_to_show.map {|r| [r,1]}]
+  
+    # SORT
+    if params[:sort] == nil and session[:sort] == nil
+      @order_to_show = ''
+    elsif params[:sort] != nil
+      @order_to_show = params[:sort]
+      session[:sort] = params[:sort]
+    elsif params[:sort] == nil and session[:sort] != nil
+      # redirect to the previous case
+      @order_to_show = session[:sort]
+      @need_to_redirect = true
+    end
 
-    if params.key?(:sort)
-      @movies = @movies.order(params[:sort])
-      if params[:sort]=='title'
-        @title_header = 'hilite bg-warning'
-      end
-      if params[:sort]=='release_date'
-        @release_date_header = 'hilite bg-warning'
-      end
+    # change header color
+    if @order_to_show == 'title'
+      @title_header = 'hilite bg-warning'
+    elsif @order_to_show == 'release_date'
+      @release_date_header = 'hilite bg-warning'
+    end
+
+    if @need_to_redirect
+      redirect_to movies_path(ratings: @ratings_to_show_hash, sort: @order_to_show)
+    else
+      @movies = Movie.with_ratings(@ratings_to_show).order(@order_to_show)
     end
   end
 

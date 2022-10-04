@@ -8,10 +8,11 @@ class Movie < ActiveRecord::Base
     #  movies with those ratings
     # if ratings_list is nil, retrieve ALL movies
     if ratings_list.empty?
-      return Movie.all
+      return Movie.where(rating: Movie.all_ratings)
     else
-      ratings_upper = ratings_list.map(&:upcase)
-      return Movie.where(rating: ratings_upper)
+      # ratings_upper = ratings_list.map(&:upcase)
+      # by default, SQL is case-insensitive. So no need to convert
+      return Movie.where(rating: ratings_list)
     end
   end
 

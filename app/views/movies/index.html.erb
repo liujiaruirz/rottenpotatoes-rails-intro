@@ -1,6 +1,8 @@
 <!--  This file is app/views/movies/index.html.erb -->
 <h2>All Movies</h2>
 
+
+
 <%#  Part 1: Start here... %>
 
 <%= form_tag movies_path, method: :get, id: 'ratings_form' do %>
@@ -14,17 +16,18 @@
   <%= submit_tag 'Refresh', id: 'ratings_submit', class: 'btn btn-primary' %>
 <% end %>
 
+
 <table class="table table-striped col-md-12" id="movies">
   <thead>
     <tr>
       <th class="<%=@title_header%>">
-        <%= link_to "Movie Title", movies_path(sort: 'title', ratings: @ratings_to_show_hash), id: 'title_header' %>
+        <%= link_to "Movie Title", movies_path(ratings: @ratings_to_show_hash, sort: 'title'), id: 'title_header' %>
       </th>
 
       <th>Rating</th>
 
       <th class="<%=@release_date_header%>">
-        <%= link_to "Release Date", movies_path(sort: 'release_date', ratings: @ratings_to_show_hash), id: 'release_date_header' %>
+        <%= link_to "Release Date", movies_path(ratings: @ratings_to_show_hash, sort: 'release_date'), id: 'release_date_header' %>
       </th> 
 
       <th>More Info</th>
@@ -50,3 +53,8 @@
   </tbody>
 </table>
 <%= link_to 'Add new movie', new_movie_path, :class => 'btn btn-primary' %>
+
+
+<%= debug(params) %>
+<%= debug(session[:ratings]) %>
+<%= debug(session[:sort]) %>

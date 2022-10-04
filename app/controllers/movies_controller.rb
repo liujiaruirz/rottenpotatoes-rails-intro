@@ -29,6 +29,8 @@ Case 3: Back from info-page:  params: nil, session: not nil.
       @movies = Movie.with_ratings(@ratings_to_show)
     elsif params[:ratings] != nil or params[:sort] != nil
       # Case 2
+      # when clicking on sorting or rating, the other key of param will also be nil.
+      # in this case, we want to use the infomation stored in session.
       if params[:ratings] != nil
         @ratings_to_show = params[:ratings].keys
       else 
@@ -36,6 +38,8 @@ Case 3: Back from info-page:  params: nil, session: not nil.
       end
       # update session
       session[:ratings] = @ratings_to_show
+
+      # same as above
       if params[:sort] == nil
         params[:sort] = session[:sort]
       else
